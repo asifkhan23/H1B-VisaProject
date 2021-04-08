@@ -87,6 +87,8 @@ applications_datascience%>%
   theme_minimal()
 
 ```
+## Top 10 Companies that provide Data Science Jobs
+
 ```{r}
 companies_ds_df <- data_science_df %>% 
   group_by(EMPLOYER_NAME) %>% 
@@ -101,5 +103,23 @@ companies_ds_df%>%
   ggtitle("Companies that provide the most H1B for Data Science jobs") +
   labs(y="Companies", x = "Total") +
   theme_minimal()
+```
+## Top 10 Companies 2011 - 2016
+
+```{r}
+companies_df <- hb16_df %>% 
+  group_by(EMPLOYER_NAME) %>% 
+  summarise(total = n()) %>% 
+  arrange(desc(total))
+
+companies_df <- companies_df[1:10,]
+
+companies_df%>%
+  ggplot(mapping=aes(x= as.integer(total), y=EMPLOYER_NAME)) +
+  geom_bar(stat="identity", fill="steelblue") +
+  ggtitle("Companies that provide the most H1B") +
+  labs(y="Companies", x = "Total") +
+  theme_minimal()
+
 ```
 
