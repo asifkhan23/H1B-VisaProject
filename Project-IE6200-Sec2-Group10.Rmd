@@ -11,6 +11,7 @@ library(reshape2)
 library(dplyr)
 library(ggplot2)
 ```
+
 ```{r}
 hb16_df <- data.frame(read.csv("h1b16.csv", header = TRUE, sep = ,))
 hb17_df <- data.frame(read.csv("h1b17.csv", header = TRUE, sep = ,))
@@ -73,16 +74,7 @@ applications_18 <- hb18_df %>%
   mutate(
     `YEAR` = 2018,
     )
-
-applications_11_16 <- c(2017, applications_17$noOfApplications)
   
-applications_11_16%>%
-  ggplot(mapping=aes(x= as.character(YEAR), y= noOfApplications)) +
-  geom_bar(stat="identity", fill="steelblue") +
-  ggtitle("No of applications per year for Data Science jobs") +
-  labs(y="Count of Applications", x = "Year") +
-  theme_minimal()
-
 application_11_17 <- rbind(applications_11_16,applications_17)
 
 applications_datascience <- rbind(application_11_17,applications_18)
