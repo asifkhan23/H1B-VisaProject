@@ -10,6 +10,7 @@ library(lubridate)
 library(reshape2)
 library(dplyr)
 library(ggplot2)
+library(RColorBrewer)
 ```
 
 ```{r}
@@ -120,6 +121,27 @@ companies_df%>%
   ggtitle("Companies that provide the most H1B") +
   labs(y="Companies", x = "Total") +
   theme_minimal()
+
+```
+
+```{r}
+accepted_rejected_df <- hb16_df %>% 
+  group_by(CASE_STATUS) %>% 
+  summarise(total = n()) %>% 
+  drop_na()
+
+# TODO:  Could be a better pie chart
+labels <- c("CERTIFIED", "CERTIFIED-WITHDRAWN", "DENIED", "INVALIDATED", "IN REVIEW", "REJECTED", "WITHDRAWN")
+myPalette <- brewer.pal(5, "Set2") 
+pie(accepted_rejected_df$total, labels, border="white", col=myPalette)
+
+# Basic piechart
+ggplot(accepted_rejected_df, aes(x="", y=total, fill=CASE_STATUS)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0) +
+  theme_void()+
+  ggtitle("Status of appliactions")
+
 
 ```
 
