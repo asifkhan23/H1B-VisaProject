@@ -1,0 +1,98 @@
+---
+title: "Project-IE6200-Sec2-Group10"
+output: pdf_document
+---
+
+```{r}
+# Importing libraries
+library(tidyverse)
+library(lubridate)
+library(reshape2)
+library(dplyr)
+library(ggplot2)
+```
+```{r}
+hb16_df <- data.frame(read.csv("h1b16.csv", header = TRUE, sep = ,))
+hb17_df <- data.frame(read.csv("h1b17.csv", header = TRUE, sep = ,))
+hb18_df <- data.frame(read.csv("h1b18.csv", header = TRUE, sep = ,))
+
+# Data Science Vector
+data_science_jobs <- c("DATA SCIENTIST", "BUSINESS ANALYST", "DATA ANALYST", "DATA ENGINEER")
+
+data_science_df <- hb16_df %>% filter(JOB_TITLE %in% data_science_jobs)
+
+data_science_fulltime <- data_science_df %>% 
+  filter(FULL_TIME_POSITION == "Y")
+
+data_science_parttime <- data_science_df %>% 
+  filter(FULL_TIME_POSITION == "N")
+
+# Full Time Data Science
+mean(data_science_fulltime$PREVAILING_WAGE)
+median(data_science_fulltime$PREVAILING_WAGE)
+range(data_science_fulltime$PREVAILING_WAGE)
+quantile(data_science_fulltime$PREVAILING_WAGE)
+var(data_science_fulltime$PREVAILING_WAGE)
+sd(data_science_fulltime$PREVAILING_WAGE)
+
+# Compare differnet datasets, use coefficient of variation
+coefficient_of_variation_fulltime = (sd(data_science_fulltime$PREVAILING_WAGE) / mean(data_science_fulltime$PREVAILING_WAGE)) * 100 
+coefficient_of_variation_fulltime
+
+# Part Time Data Science
+mean(data_science_parttime$PREVAILING_WAGE)
+median(data_science_parttime$PREVAILING_WAGE)
+range(data_science_parttime$PREVAILING_WAGE)
+quantile(data_science_parttime$PREVAILING_WAGE)
+var(data_science_parttime$PREVAILING_WAGE)
+sd(data_science_parttime$PREVAILING_WAGE)
+
+# Compare differnet datasets, use coefficient of variation
+coefficient_of_variation_parttime = (sd(data_science_parttime$PREVAILING_WAGE) / mean(data_science_parttime$PREVAILING_WAGE)) * 100
+coefficient_of_variation_parttime
+```
+## Histogram
+
+```{r}
+applications_11_16 <- data_science_df %>% 
+  group_by(YEAR) %>% 
+  summarise(noOfApplications = n())
+```
+
+```{r}
+applications_17 <- hb17_df %>% 
+  filter(JOB_TITLE %in% data_science_jobs) %>% 
+  summarise(noOfApplications = n()) %>% 
+  mutate(
+    `YEAR` = 2017,
+    )
+
+applications_18 <- hb18_df %>% 
+  filter(JOB_TITLE %in% data_science_jobs) %>% 
+  summarise(noOfApplications = n()) %>% 
+  mutate(
+    `YEAR` = 2018,
+    )
+
+applications_11_16 <- c(2017, applications_17$noOfApplications)
+  
+applications_11_16%>%
+  ggplot(mapping=aes(x= as.character(YEAR), y= noOfApplications)) +
+  geom_bar(stat="identity", fill="steelblue") +
+  ggtitle("No of applications per year for Data Science jobs") +
+  labs(y="Count of Applications", x = "Year") +
+  theme_minimal()
+
+application_11_17 <- rbind(applications_11_16,applications_17)
+
+applications_datascience <- rbind(application_11_17,applications_18)
+
+applications_datascience%>%
+  ggplot(mapping=aes(x= as.character(YEAR), y= noOfApplications)) +
+  geom_bar(stat="identity", fill="steelblue") +
+  ggtitle("No of applications per year for Data Science jobs") +
+  labs(y="Count of Applications", x = "Year") +
+  theme_minimal()
+
+```
+
