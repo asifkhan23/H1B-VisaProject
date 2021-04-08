@@ -87,4 +87,19 @@ applications_datascience%>%
   theme_minimal()
 
 ```
+```{r}
+companies_ds_df <- data_science_df %>% 
+  group_by(EMPLOYER_NAME) %>% 
+  summarise(total = n()) %>% 
+  arrange(desc(total))
+
+companies_ds_df <- companies_ds_df[1:10,]
+
+companies_ds_df%>%
+  ggplot(mapping=aes(x= total, y=EMPLOYER_NAME)) +
+  geom_bar(stat="identity", fill="steelblue") +
+  ggtitle("Companies that provide the most H1B for Data Science jobs") +
+  labs(y="Companies", x = "Total") +
+  theme_minimal()
+```
 
