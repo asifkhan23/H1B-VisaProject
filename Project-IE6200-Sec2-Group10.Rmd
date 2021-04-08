@@ -139,9 +139,8 @@ pie(accepted_rejected_df$total, labels, border="white", col=myPalette)
 ggplot(accepted_rejected_df, aes(x="", y=total, fill=CASE_STATUS)) +
   geom_bar(stat="identity", width=1, color="white") +
   coord_polar("y", start=0) +
-  theme_void()+
-  ggtitle("Status of appliactions")
-
+  theme_void() +
+  ggtitle("Status of applications")
 
 ```
 
