@@ -11,6 +11,9 @@ library(reshape2)
 library(dplyr)
 library(ggplot2)
 library(RColorBrewer)
+library(corrplot)
+library(fitdistrplus)
+library(mapproj)
 ```
 
 ```{r}
@@ -142,5 +145,115 @@ ggplot(accepted_rejected_df, aes(x="", y=total, fill=CASE_STATUS)) +
   theme_void() +
   ggtitle("Status of applications")
 
+```
+```{r}
+
+wage_df <- data_science_df %>% 
+  group_by(PREVAILING_WAGE) %>% 
+  summarise(total = n()) %>% 
+  drop_na() %>% 
+  arrange(desc(PREVAILING_WAGE = FALSE))
+
+nrow(wage_df)
+
+ggplot(data_science_df, aes(x = PREVAILING_WAGE)) +
+  geom_histogram(bins = 30, color = 'Black', fill = 'steelblue')
+
+certified_h1b <- hb16_df %>% 
+  filter(CASE_STATUS == "CERTIFIED")
+
+ggplot(hb17_df, aes(x = as.Date(EMPLOYMENT_START_DATE))) +
+  geom_histogram(bins = 70, color = 'Black', fill = 'steelblue')
+
+
+```
+
+
+```{r}
+
+h1b <- data.frame(lapply(hb16_df, function(v) {
+  if (is.factor(v)) return(toupper(v))
+  else return(v)
+}))
+
+h1b <- tbl_df(h1b)
+glimpse(h1b)
+
+# ------------------------------------------------------------------------------------------------------------------------------
+
+# Split WORKSITE column into two columns: city and state
+h1b <- h1b %>%
+    separate(WORKSITE, c("CITY", "STATE"), ", ")
+
+# Change variables 'STATE' and 'YEAR' to ordered factors
+h1b$STATE <- factor(h1b$STATE, ordered = TRUE)
+h1b$YEAR <- factor(h1b$YEAR, ordered = TRUE)
+
+# ------------------------------------------------------------------------------------------------------------------------------
+# Keep only "CERTIFIED" H1B cases
+certified_h1b <- h1b %>%
+    filter(CASE_STATUS == "CERTIFIED")
+
+# Generate a sample of wages and filter out NA values
+set.seed(123)
+wage_sample <- subset(certified_h1b[sample(1:nrow(certified_h1b), 300000), 7], 
+                      !is.na(PREVAILING_WAGE))
+
+# Histogram of sampled wages
+ggplot(subset(wage_sample, 
+              PREVAILING_WAGE >= quantile(PREVAILING_WAGE, 0.1) & 
+                  PREVAILING_WAGE <= quantile(PREVAILING_WAGE, 0.95)), 
+              aes(x = PREVAILING_WAGE)) + 
+    geom_histogram(binwidth = 1000,
+                   col = "red", 
+                   fill = "blue", 
+                   alpha = .2) +
+    scale_x_continuous(breaks = seq(min(wage_sample$PREVAILING_WAGE), 
+                                    max(wage_sample$PREVAILING_WAGE),
+                                    5000)) +
+    labs(title = "Histogram of Prevailing Wage)", 
+         x = "prevailing wage")
+
+```
+```{r}
+
+descdist(wage_sample$PREVAILING_WAGE)
+```
+```{r}
+# Import state data containing state abbreviations and locations
+data(state)
+states <- data.frame(state.abb, state.name, state.area, state.center,
+                     state.division, state.region, state.x77)
+
+row.names(states) <- NULL
+states <- states %>%
+    select(state.abb, state.name, x, y, Population, Income, Illiteracy)
+states <- subset(states, ! state.abb %in% c("HI", "AK"))
+
+
+# Count H1B petitions filed by each state
+petition_by_state <- certified_h1b %>%
+    filter(STATE != "NA") %>%
+    group_by(region = tolower(STATE)) %>%
+    summarise(no_petitions = n()) %>%
+    arrange(desc(no_petitions))
+
+
+# Draw the map
+us_states <- map_data("state")
+
+petition_by_state <- inner_join(petition_by_state, us_states, by = "region")
+
+plot_petition_by_state <- ggplot(petition_by_state, aes(x = long, y = lat, group = group)) +
+    geom_polygon(aes(fill = cut_number(no_petitions, 7, dig.lab=6))) +
+    geom_path(color = "gray", linestyle = 2) +
+    coord_map() +
+    geom_text(data = states, aes(x = x, y = y, label = state.abb, group = NULL),
+              size = 4, color = "white") +
+    scale_fill_brewer('Number of petitions', palette  = 'PuRd', label = scales::comma) +
+    ggtitle("H1B petitions by state") +
+    theme_bw()
+    
+plot_petition_by_state
 ```
 
