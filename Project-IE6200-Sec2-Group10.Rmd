@@ -423,14 +423,14 @@ wage_year_sample <- subset(certified_h1b[sample(1:nrow(certified_h1b), 300000),
                                                       0.99))
 
 wage_year_sample <- wage_year_sample %>%
-    group_by(YEAR) %>%
-    mutate(mean_wage = mean(PREVAILING_WAGE),
-           median_wage = median(PREVAILING_WAGE),
+            group_by(YEAR) %>%
+            mutate(mean_wage = mean(PREVAILING_WAGE),
+            median_wage = median(PREVAILING_WAGE),
            '10th_percentile' = quantile(PREVAILING_WAGE, 0.1),
            '90th_percentile' = quantile(PREVAILING_WAGE, 0.9))
 
 wage_year_stats <- wage_year_sample %>%
-    distinct(mean_wage, median_wage, `10th_percentile`, `90th_percentile`)
+    distinct(mean_wage, median_wage, `10th_percentile`, `90th_percentile`,YEAR)
     
 wage_year_stats <- wage_year_stats[order(wage_year_stats$YEAR), 
                                    c(ncol(wage_year_stats), 
@@ -438,9 +438,9 @@ wage_year_stats <- wage_year_stats[order(wage_year_stats$YEAR),
     
 # From wide to long format
 wage_year_stats_long <- gather(wage_year_stats, statistics, values, 
-                               mean_wage:`90th_percentile`,
+                               mean_wage:`90th_percentile`,YEAR,
                                factor_key = TRUE)
-
+new
 # Trend of median, mean, 10th percentile and 90th percentile of wages
 wage_trend <- ggplot(wage_year_stats, 
                      aes(x = YEAR, y = mean_wage)) +
@@ -452,7 +452,15 @@ wage_trend <- ggplot(wage_year_stats,
     theme(plot.title = element_text(size = rel(1.3)),
           legend.position = "bottom")
     
-wage_trend
+#wage_trend
+knitr::kable(wage_year_stats)
+
+```
+
+
+```{r}
+
+```{r}
 
 ```
 
