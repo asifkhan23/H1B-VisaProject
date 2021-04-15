@@ -147,6 +147,7 @@ ggplot(accepted_rejected_df, aes(x="", y=total, fill=CASE_STATUS)) +
   ggtitle("Status of applications")
 
 ```
+
 ```{r}
 
 wage_df <- data_science_df %>% 
@@ -216,10 +217,27 @@ ggplot(subset(wage_sample,
          x = "prevailing wage")
 
 ```
+
+
+
 ```{r}
 
 descdist(wage_sample$PREVAILING_WAGE)
 ```
+```{r}
+fit_x <- fitdist(wage_sample$PREVAILING_WAGE, "norm")
+summary(fit_x)
+```
+```{r}
+
+par(mfrow=c(2,2))
+plot.legend <-c("Normal")
+denscomp(list(fit_x), legendtext = plot.legend, xlab ='X', xlegend ='topleft')
+cdfcomp(list(fit_x), legendtext = plot.legend, xlab ='X')
+qqcomp(list(fit_x), legendtext = plot.legend, xlab ='X')
+ppcomp(list(fit_x), legendtext = plot.legend, xlab ='X')
+```
+
 ```{r}
 # Import state data containing state abbreviations and locations
 
@@ -252,7 +270,7 @@ plot_petition_by_state <- ggplot(petition_by_state, aes(x = long, y = lat, group
     coord_map() +
     geom_text(data = states, aes(x = x, y = y, label = state.abb, group = NULL),
               size = 4, color = "white") +
-    scale_fill_brewer('Number of petitions', palette  = 'PuRd', label = scales::comma) +
+    #scale_fill_brewer('Number of petitions', palette  = 'PuRd', label = scales::comma) +
     ggtitle("H1B petitions by state") +
     theme_bw()
     
@@ -346,9 +364,7 @@ ggplot(top_10_soc_with_highest_wage, aes(y = median_wage, x = reorder(SOC_NAME, 
       ) +
       labs(x = "Occupational Name")
 ```
-```{r}
-knitr::kable(top_10_soc_with_highest_wage)
-```
+
 ```{r}
 certified_denied_h1b <- h1b %>%
     filter(CASE_STATUS == "CERTIFIED" | CASE_STATUS == "DENIED")
@@ -426,8 +442,8 @@ wage_year_stats_long <- gather(wage_year_stats, statistics, values,
                                factor_key = TRUE)
 
 # Trend of median, mean, 10th percentile and 90th percentile of wages
-wage_trend <- ggplot(wage_year_stats_long, 
-                     aes(x = YEAR, y = values, group = statistics)) +
+wage_trend <- ggplot(wage_year_stats, 
+                     aes(x = YEAR, y = mean_wage)) +
     geom_line(aes(color = statistics), lineend = "round", size = 1) +
     expand_limits(y = 0) +
     scale_y_continuous(breaks = seq(0, 120000, 10000), labels = scales::comma) +
@@ -438,5 +454,124 @@ wage_trend <- ggplot(wage_year_stats_long,
     
 wage_trend
 
+```
+
+## Sampling
+
+```{r}
+
+## Total Population consist of Employees with Job Title related to Data Science.
+## Sample Population consist of Employees with Job Title realted to Data Science working in Microsoft Corporation.
+
+## Assuming our entire dataset is the population we want to test if the mean wage of our sample data is equivalent to mean wage
+
+employerSample <- sample_n(data_science_df, 1000)
+
+employerMicrosoft <- data_science_df %>% dplyr::filter(EMPLOYER_NAME == 'MICROSOFT CORPORATION')
+```
+
+## One Sample Z-test
+
+```{r}
+# The sample mean wage Mu is
+mean(employerSample$PREVAILING_WAGE)
+
+# And the population mean wage (Mu0) is
+
+mean(data_science_df$PREVAILING_WAGE)
+
+## X ≡ R.V. of wage of a employee
+## H0: μ = 176240 
+## Ha: μ not equal 176240
+
+z.test <- function(sample, pop){ 
+  sample_mean = mean(sample) 
+  pop_mean = mean(pop)
+  n = length(sample)
+  var = var(pop)
+  z = (sample_mean - pop_mean) / (sqrt(var/(n))) 
+  return(z)
+}
+
+z.test(employerSample$PREVAILING_WAGE, data_science_df$PREVAILING_WAGE)
+
+## Conclusion: Since, the z value lies within (-1.96,1.96), we fail to reject null hypothesis and conclude that there is no significant difference between sample mean wage and population mean wage.
+```
+
+## One Sample t-test
+
+```{r}
+# The sample mean wage (Mu) is
+
+mean(employerMicrosoft$PREVAILING_WAGE)
+
+# And the population mean wage (Mu0) is
+mean(data_science_df$PREVAILING_WAGE)
+
+## Thus, our null and alternate hypothesis are: 
+## X ≡ R.V. of wage of a employee
+
+# H0: μ = 84538.73
+# Ha: μ not equal 176240
+
+t.test(employerMicrosoft$PREVAILING_WAGE, mu = mean(data_science_df$PREVAILING_WAGE))
+
+## Conclusion: As the p − value ≤ 0.05, we reject the null hypothesis and conclude that there is a significant difference between the sample mean wage of employee Microsoft and population mean wage.
+```
+
+## Two Sample Z-test
+
+```{r}
+z_test2 = function(a, b, var_a, var_b){
+  n.a = length(a)
+  n.b = length(b)
+  z = (mean(a) - mean(b)) / (sqrt((var_a)/n.a + (var_b)/n.b)) 
+  return(z)
+}
+
+cen_1 <- data_science_df[1:16000,] #select all columns and rows from 1 to 16000
+cen_2 <- data_science_df[16001:32561,] #select all columns and rows from 16001 to 32561 
+cen_1_sample <- sample_n(cen_1, 1000) #sample 1000 rows from the first population 
+cen_2_sample <- sample_n(cen_2, 1000) #sample 1000 rows from the second population
+
+## X1 ≡ R.V. of wage of a employee from first sample 
+## X2 ≡ R.V. of wage of a employee from second sample
+
+## The mean wage of sample 1 is therefore (Mu1)
+mean(cen_1_sample$PREVAILING_WAGE)
+
+## The mean wage of sample 2 is therefore (Mu2) 
+mean(cen_2_sample$PREVAILING_WAGE)
+
+## Thus, our null and alternate hypothesis are: 
+## H0: μ1 − μ2 = 0
+## H0: μ1 − μ2 not equal 0
+
+z_test2(cen_1_sample$PREVAILING_WAGE, cen_2_sample$PREVAILING_WAGE, var(cen_1_sample$PREVAILING_WAGE), var(cen_2_sample$PREVAILING_WAGE))
+
+## Thus, for a significance level of alpha = 0.05, we fail to reject the null hypothesis since the z-value lies within the range [−1.96, 1.96] and conclude that there is no significant difference between the mean wage of two samples.
+```
+
+## Two Sample t-test
+
+```{r}
+
+## X1 ≡ R.V. of wage of a person from first sample 
+## X2 ≡ R.V. of wage of a person from second sample 
+## The mean age of sample 1 is therefore (Mu1)
+
+mean(cen_1_sample$PREVAILING_WAGE)
+
+## The mean wage of sample 2 is therefore (Mu2)
+
+mean(cen_2_sample$PREVAILING_WAGE)
+
+## Thus, our null and alternate hypothesis are:
+## H0: μ1 − μ2 = 0 
+## H0: μ1 − μ2 not equal 0
+
+t.test(cen_1_sample$PREVAILING_WAGE, cen_2_sample$PREVAILING_WAGE)
+
+## Since p−value ≥ 0.05, we fail to reject the null hypothesis and conclude that there is no significant difference between the mean wage of two samples, reaching the same conclusion as the two sample z-test.
 ```
 
