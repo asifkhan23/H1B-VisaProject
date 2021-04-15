@@ -3,7 +3,7 @@ title: "Project-IE6200-Sec2-Group10"
 output: pdf_document
 ---
 
-```{r}
+```{r echo=FALSE}
 # Importing libraries
 library(tidyverse)
 library(lubridate)
@@ -17,7 +17,7 @@ library(mapproj)
 library(magrittr)
 ```
 
-```{r}
+```{r echo=FALSE}
 hb16_df <- data.frame(read.csv("h1b16.csv", header = TRUE, sep = ,))
 hb17_df <- data.frame(read.csv("h1b17.csv", header = TRUE, sep = ,))
 hb18_df <- data.frame(read.csv("h1b18.csv", header = TRUE, sep = ,))
@@ -59,13 +59,13 @@ coefficient_of_variation_parttime
 ```
 ## Histogram
 
-```{r}
+```{r echo=FALSE}
 applications_11_16 <- data_science_df %>% 
   group_by(YEAR) %>% 
   summarise(noOfApplications = n())
 ```
 
-```{r}
+```{r echo=FALSE}
 applications_17 <- hb17_df %>% 
   filter(JOB_TITLE %in% data_science_jobs) %>% 
   summarise(noOfApplications = n()) %>% 
@@ -94,7 +94,7 @@ applications_datascience%>%
 ```
 ## Top 10 Companies that provide Data Science Jobs
 
-```{r}
+```{r echo=FALSE}
 companies_ds_df <- data_science_df %>% 
   group_by(EMPLOYER_NAME) %>% 
   summarise(total = n()) %>% 
@@ -111,7 +111,7 @@ companies_ds_df%>%
 ```
 ## Top 10 Companies 2011 - 2016
 
-```{r}
+```{r echo=FALSE}
 companies_df <- hb16_df %>% 
   group_by(EMPLOYER_NAME) %>% 
   summarise(total = n()) %>% 
@@ -128,7 +128,7 @@ companies_df%>%
 
 ```
 
-```{r}
+```{r echo=FALSE}
 accepted_rejected_df <- hb16_df %>% 
   group_by(CASE_STATUS) %>% 
   summarise(total = n()) %>% 
@@ -148,7 +148,7 @@ ggplot(accepted_rejected_df, aes(x="", y=total, fill=CASE_STATUS)) +
 
 ```
 
-```{r}
+```{r echo=FALSE}
 
 wage_df <- data_science_df %>% 
   group_by(PREVAILING_WAGE) %>% 
@@ -171,7 +171,7 @@ ggplot(hb17_df, aes(x = as.Date(EMPLOYMENT_START_DATE))) +
 ```
 
 
-```{r}
+```{r echo=FALSE}
 
 h1b <- data.frame(lapply(hb16_df, function(v) {
   if (is.factor(v)) return(toupper(v))
@@ -220,15 +220,15 @@ ggplot(subset(wage_sample,
 
 
 
-```{r}
+```{r echo=FALSE}
 
 descdist(wage_sample$PREVAILING_WAGE)
 ```
-```{r}
+```{r echo=FALSE}
 fit_x <- fitdist(wage_sample$PREVAILING_WAGE, "norm")
 summary(fit_x)
 ```
-```{r}
+```{r echo=FALSE}
 
 par(mfrow=c(2,2))
 plot.legend <-c("Normal")
@@ -238,7 +238,7 @@ qqcomp(list(fit_x), legendtext = plot.legend, xlab ='X')
 ppcomp(list(fit_x), legendtext = plot.legend, xlab ='X')
 ```
 
-```{r}
+```{r echo=FALSE}
 # Import state data containing state abbreviations and locations
 
   data(state)
@@ -276,7 +276,7 @@ plot_petition_by_state <- ggplot(petition_by_state, aes(x = long, y = lat, group
     
 plot_petition_by_state
 ```
-```{r}
+```{r echo=FALSE}
 case_quantity_per_year <- certified_h1b %>%
     group_by(YEAR) %>%
     summarise(all_occupations = n())
@@ -294,7 +294,7 @@ ggplot(case_quantity_per_year, aes(y = all_occupations, x = YEAR, fill = YEAR)) 
             legend.position = "none"
             )
 ```
-```{r}
+```{r echo=FALSE}
 # Count H1B petitions filed in CA, NY and TX in each year
 cnt_case_per_year <- certified_h1b %>%
     filter(STATE %in% c("CALIFORNIA", "NEW YORK", "TEXAS")) %>%
@@ -310,7 +310,7 @@ ggplot(cnt_case_per_year, aes(x = YEAR, y = count, fill = STATE)) +
     theme(legend.position = "bottom",
          plot.title = element_text(size = rel(1.3)))
 ```
-```{r}
+```{r echo=FALSE}
 # Top 10 employers who filed the most H1B petitions
 top_10_employers <- certified_h1b %>%
         group_by(EMPLOYER_NAME) %>%
@@ -341,7 +341,7 @@ ggplot(employers_boxplot_df, aes(y = PREVAILING_WAGE, x = EMPLOYER_NAME,
             panel.grid.minor = element_line(linetype = 'blank')  
       )
 ```
-```{r}
+```{r echo=FALSE}
 # Top 10 occupations with the highest wages
 top_10_soc_with_highest_wage <- certified_h1b %>%
         group_by(SOC_NAME) %>%
@@ -365,7 +365,7 @@ ggplot(top_10_soc_with_highest_wage, aes(y = median_wage, x = reorder(SOC_NAME, 
       labs(x = "Occupational Name")
 ```
 
-```{r}
+```{r echo=FALSE}
 certified_denied_h1b <- h1b %>%
     filter(CASE_STATUS == "CERTIFIED" | CASE_STATUS == "DENIED")
 
@@ -386,7 +386,7 @@ ggplot(certified_denied_h1b, aes(y = PREVAILING_WAGE, x = CASE_STATUS,
             panel.grid.minor = element_line(linetype = 'blank')
       )
 ```
-```{r}
+```{r echo=FALSE}
 # Randomly sample one tenth of total H1B petitions, excluding Null values in wages
 wage_year_sample <- subset(certified_h1b[sample(1:nrow(certified_h1b), 300000), c(7, 8)], 
                       !is.na(PREVAILING_WAGE) & 
@@ -412,7 +412,7 @@ wage_dist_per_year <- ggplot(subset(wage_year_sample,
 wage_dist_per_year
 ```
 
-```{r}
+```{r echo=FALSE}
 set.seed(123)
 
 # Filter out the top 1% outliers in the prevailing_wage variable
@@ -458,15 +458,9 @@ knitr::kable(wage_year_stats)
 ```
 
 
-```{r}
-
-```{r}
-
-```
-
 ## Sampling
 
-```{r}
+```{r echo=FALSE}
 
 ## Total Population consist of Employees with Job Title related to Data Science.
 ## Sample Population consist of Employees with Job Title realted to Data Science working in Microsoft Corporation.
@@ -480,7 +474,7 @@ employerMicrosoft <- data_science_df %>% dplyr::filter(EMPLOYER_NAME == 'MICROSO
 
 ## One Sample Z-test
 
-```{r}
+```{r echo=FALSE}
 # The sample mean wage Mu is
 mean(employerSample$PREVAILING_WAGE)
 
@@ -488,9 +482,9 @@ mean(employerSample$PREVAILING_WAGE)
 
 mean(data_science_df$PREVAILING_WAGE)
 
-## X ≡ R.V. of wage of a employee
-## H0: μ = 176240 
-## Ha: μ not equal 176240
+## X = R.V. of wage of a employee
+## H0: Mu = 176240 
+## Ha: Mu not equal 176240
 
 z.test <- function(sample, pop){ 
   sample_mean = mean(sample) 
@@ -508,7 +502,7 @@ z.test(employerSample$PREVAILING_WAGE, data_science_df$PREVAILING_WAGE)
 
 ## One Sample t-test
 
-```{r}
+```{r echo=FALSE}
 # The sample mean wage (Mu) is
 
 mean(employerMicrosoft$PREVAILING_WAGE)
@@ -517,19 +511,28 @@ mean(employerMicrosoft$PREVAILING_WAGE)
 mean(data_science_df$PREVAILING_WAGE)
 
 ## Thus, our null and alternate hypothesis are: 
-## X ≡ R.V. of wage of a employee
+## X = R.V. of wage of a employee
 
-# H0: μ = 84538.73
-# Ha: μ not equal 176240
+# H0: Mu = 84538.73
+# Ha: Mu not equal 176240
 
 t.test(employerMicrosoft$PREVAILING_WAGE, mu = mean(data_science_df$PREVAILING_WAGE))
+
+## Two Tailed
+t.test(employerMicrosoft$PREVAILING_WAGE,alternative = "two.sided" ,mu = mean(data_science_df$PREVAILING_WAGE))
+ 
+## Left Tailed
+t.test(employerMicrosoft$PREVAILING_WAGE,alternative = "greater" ,mu = mean(data_science_df$PREVAILING_WAGE))
+
+## Right Tailed
+t.test(employerMicrosoft$PREVAILING_WAGE,alternative = "less" ,mu = mean(data_science_df$PREVAILING_WAGE))
 
 ## Conclusion: As the p − value ≤ 0.05, we reject the null hypothesis and conclude that there is a significant difference between the sample mean wage of employee Microsoft and population mean wage.
 ```
 
 ## Two Sample Z-test
 
-```{r}
+```{r echo=FALSE}
 z_test2 = function(a, b, var_a, var_b){
   n.a = length(a)
   n.b = length(b)
@@ -542,8 +545,8 @@ cen_2 <- data_science_df[16001:32561,] #select all columns and rows from 16001 t
 cen_1_sample <- sample_n(cen_1, 1000) #sample 1000 rows from the first population 
 cen_2_sample <- sample_n(cen_2, 1000) #sample 1000 rows from the second population
 
-## X1 ≡ R.V. of wage of a employee from first sample 
-## X2 ≡ R.V. of wage of a employee from second sample
+## X1 = R.V. of wage of a employee from first sample 
+## X2 = R.V. of wage of a employee from second sample
 
 ## The mean wage of sample 1 is therefore (Mu1)
 mean(cen_1_sample$PREVAILING_WAGE)
@@ -552,8 +555,8 @@ mean(cen_1_sample$PREVAILING_WAGE)
 mean(cen_2_sample$PREVAILING_WAGE)
 
 ## Thus, our null and alternate hypothesis are: 
-## H0: μ1 − μ2 = 0
-## H0: μ1 − μ2 not equal 0
+## H0: Mu1 − Mu2 = 0
+## H0: Mu1 − Mu2 not equal 0
 
 z_test2(cen_1_sample$PREVAILING_WAGE, cen_2_sample$PREVAILING_WAGE, var(cen_1_sample$PREVAILING_WAGE), var(cen_2_sample$PREVAILING_WAGE))
 
@@ -562,10 +565,10 @@ z_test2(cen_1_sample$PREVAILING_WAGE, cen_2_sample$PREVAILING_WAGE, var(cen_1_sa
 
 ## Two Sample t-test
 
-```{r}
+```{r echo=FALSE}
 
-## X1 ≡ R.V. of wage of a person from first sample 
-## X2 ≡ R.V. of wage of a person from second sample 
+## X1 = R.V. of wage of a person from first sample 
+## X2 = R.V. of wage of a person from second sample 
 ## The mean age of sample 1 is therefore (Mu1)
 
 mean(cen_1_sample$PREVAILING_WAGE)
@@ -575,11 +578,16 @@ mean(cen_1_sample$PREVAILING_WAGE)
 mean(cen_2_sample$PREVAILING_WAGE)
 
 ## Thus, our null and alternate hypothesis are:
-## H0: μ1 − μ2 = 0 
-## H0: μ1 − μ2 not equal 0
+## H0: Mu1 − Mu2 = 0 
+## H0: Mu1 − Mu2 not equal 0
 
 t.test(cen_1_sample$PREVAILING_WAGE, cen_2_sample$PREVAILING_WAGE)
 
 ## Since p−value ≥ 0.05, we fail to reject the null hypothesis and conclude that there is no significant difference between the mean wage of two samples, reaching the same conclusion as the two sample z-test.
+```
+
+## 
+```{r echo=FALSE}
+t.test(employerMicrosoft$PREVAILING_WAGE,alternative = "two.sided" ,mu = mean(data_science_df$PREVAILING_WAGE))
 ```
 
