@@ -14,6 +14,7 @@ library(RColorBrewer)
 library(corrplot)
 library(fitdistrplus)
 library(mapproj)
+library(magrittr)
 ```
 
 ```{r}
@@ -290,5 +291,152 @@ ggplot(cnt_case_per_year, aes(x = YEAR, y = count, fill = STATE)) +
     ggtitle("Quantity of H1B cases in California, New York and Texas from 2011 to 2016") +
     theme(legend.position = "bottom",
          plot.title = element_text(size = rel(1.3)))
+```
+```{r}
+# Top 10 employers who filed the most H1B petitions
+top_10_employers <- certified_h1b %>%
+        group_by(EMPLOYER_NAME) %>%
+        summarise(num_apps = n()) %>%
+        arrange(desc(num_apps)) %>%
+        slice(1:10) %>%
+        dplyr::select(EMPLOYER_NAME)
+
+employers_boxplot_df <- certified_h1b %>%
+    filter(EMPLOYER_NAME %in% top_10_employers$EMPLOYER_NAME)
+
+# Boxplot showing the wage distribution of each employer
+ggplot(employers_boxplot_df, aes(y = PREVAILING_WAGE, x = EMPLOYER_NAME, 
+                                 fill = EMPLOYER_NAME, notch = TRUE, notchwidth = .3)) + 
+      geom_boxplot(notch = TRUE) + 
+      scale_y_continuous(limits = c(0, 150000), 
+                         breaks = seq(0, 150000, 10000)) + 
+      ggtitle("Wages for H1B cases in top 10 companies")+
+      theme(
+            plot.title = element_text(size = rel(1.3)),
+            panel.background = element_rect(fill = '#f0f0f0'),
+            axis.text.x=element_blank(),
+            legend.position = "bottom", 
+            legend.title = element_text(size = rel(0.7)),
+            legend.text = element_text(size = rel(0.4)), 
+            panel.grid.major = element_line(colour = '#f0f0f0'),
+            panel.grid.major.x = element_line(linetype = 'blank'),
+            panel.grid.minor = element_line(linetype = 'blank')  
+      )
+```
+```{r}
+# Top 10 occupations with the highest wages
+top_10_soc_with_highest_wage <- certified_h1b %>%
+        group_by(SOC_NAME) %>%
+        summarise(median_wage = median(PREVAILING_WAGE)) %>%
+        arrange(desc(median_wage)) %>%
+        slice(1:10) %>%
+        dplyr::select(SOC_NAME, median_wage)
+
+# Bar plot showing median wages for each occupation
+ggplot(top_10_soc_with_highest_wage, aes(y = median_wage, x = reorder(SOC_NAME, median_wage))) + 
+      geom_bar(stat = "identity", fill = "blue", alpha = 0.7, width = 0.7) + 
+      #scale_y_continuous(limits = c(0, 150000), 
+                         #breaks = seq(0, 150000, 5000)) + 
+      ggtitle("Top 10 occupations with highest median prevailing wages") +
+      coord_flip() +
+      theme(
+            plot.title = element_text(size = rel(1)),
+            axis.text.x=element_text(size = rel(0.8)),
+            legend.position = "bottom"
+      ) +
+      labs(x = "Occupational Name")
+```
+```{r}
+knitr::kable(top_10_soc_with_highest_wage)
+```
+```{r}
+certified_denied_h1b <- h1b %>%
+    filter(CASE_STATUS == "CERTIFIED" | CASE_STATUS == "DENIED")
+
+# Boxplot of prevailing wage in these two categories
+ggplot(certified_denied_h1b, aes(y = PREVAILING_WAGE, x = CASE_STATUS, 
+                                 fill = CASE_STATUS, notch = TRUE, 
+                                 notchwidth = .3)) + 
+      geom_boxplot(notch = TRUE) + 
+      scale_fill_manual(values = c("#29a329", "#ea4b1f"))+
+      scale_y_continuous(limits = c(0, 150000), 
+                         breaks = seq(0, 150000, 10000)) + 
+      ggtitle("Wages for certified & denied H1B cases")+
+      theme(
+            plot.title = element_text(size = rel(1.3)),
+            panel.background = element_rect(fill = 'light gray'),
+            panel.grid.major = element_line(colour = '#f0f0f0'),
+            panel.grid.major.x = element_line(linetype = 'blank'),
+            panel.grid.minor = element_line(linetype = 'blank')
+      )
+```
+```{r}
+# Randomly sample one tenth of total H1B petitions, excluding Null values in wages
+wage_year_sample <- subset(certified_h1b[sample(1:nrow(certified_h1b), 300000), c(7, 8)], 
+                      !is.na(PREVAILING_WAGE) & 
+                          PREVAILING_WAGE <= quantile(certified_h1b$PREVAILING_WAGE, 0.99))
+
+# Histograms of wages in each year
+wage_dist_per_year <- ggplot(subset(wage_year_sample, 
+              PREVAILING_WAGE >= quantile(PREVAILING_WAGE, 0.1) & 
+                  PREVAILING_WAGE <= quantile(PREVAILING_WAGE, 0.95)), 
+              aes(x = PREVAILING_WAGE)) + 
+    geom_histogram(binwidth = 1000,
+                   col = "red", 
+                   fill = "blue", 
+                   alpha = .2) +
+    facet_wrap(~YEAR) +
+    scale_x_continuous(breaks = seq(min(wage_sample$PREVAILING_WAGE), 
+                                    max(wage_sample$PREVAILING_WAGE),
+                                    10000)) +
+    labs(title = "Histograms of Prevailing Wages by year", 
+         x = "prevailing wage") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+wage_dist_per_year
+```
+
+```{r}
+set.seed(123)
+
+# Filter out the top 1% outliers in the prevailing_wage variable
+wage_year_sample <- subset(certified_h1b[sample(1:nrow(certified_h1b), 300000), 
+                                         c(7, 8)], 
+                      !is.na(PREVAILING_WAGE) & 
+                          PREVAILING_WAGE <= quantile(certified_h1b$PREVAILING_WAGE, 
+                                                      0.99))
+
+wage_year_sample <- wage_year_sample %>%
+    group_by(YEAR) %>%
+    mutate(mean_wage = mean(PREVAILING_WAGE),
+           median_wage = median(PREVAILING_WAGE),
+           '10th_percentile' = quantile(PREVAILING_WAGE, 0.1),
+           '90th_percentile' = quantile(PREVAILING_WAGE, 0.9))
+
+wage_year_stats <- wage_year_sample %>%
+    distinct(mean_wage, median_wage, `10th_percentile`, `90th_percentile`)
+    
+wage_year_stats <- wage_year_stats[order(wage_year_stats$YEAR), 
+                                   c(ncol(wage_year_stats), 
+                                     1:(ncol(wage_year_stats) - 1))]
+    
+# From wide to long format
+wage_year_stats_long <- gather(wage_year_stats, statistics, values, 
+                               mean_wage:`90th_percentile`,
+                               factor_key = TRUE)
+
+# Trend of median, mean, 10th percentile and 90th percentile of wages
+wage_trend <- ggplot(wage_year_stats_long, 
+                     aes(x = YEAR, y = values, group = statistics)) +
+    geom_line(aes(color = statistics), lineend = "round", size = 1) +
+    expand_limits(y = 0) +
+    scale_y_continuous(breaks = seq(0, 120000, 10000), labels = scales::comma) +
+    ggtitle("Wage Trend from 2011 to 2016: Line Chart") +
+    labs(y = "wage / $") +
+    theme(plot.title = element_text(size = rel(1.3)),
+          legend.position = "bottom")
+    
+wage_trend
+
 ```
 
