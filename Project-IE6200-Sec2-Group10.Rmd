@@ -179,13 +179,13 @@ pmf_df <- data_science_df %>%
     summarise(count=n(),  .groups = 'drop') %>%
     mutate(pmf = count/sum(count))
 
-ggplot(pmf_df, aes(count, pmf)) +
+ggplot(pmf_df, aes(YEAR, pmf)) +
   geom_bar(stat="identity", fill="steelblue")+
   theme_bw() +
   ggtitle("PMF for Accepted applications from 2011-2016")+
-  labs(x = 'No of accepted applications', y = 'Count') + 
+  labs(x = 'No of accepted applications', y = 'PMF') + 
   theme(plot.title = element_text(hjust = 0.5)) + 
-  scale_x_continuous("Count of accepted applicatin", labels = as.character(pmf_df$count),breaks = pmf_df$count)
+  scale_x_continuous("Year", labels = pmf_df$YEAR ,breaks = pmf_df$YEAR)
 ```
 ### Continious Distribution Fucntion (CDF) 
 
@@ -199,11 +199,11 @@ cdf_df <- data_science_df %>%
     cdf = cumsum(count)/sum(count) 
   )
 
-ggplot(cdf_df, aes(x=count, y=cdf))+
+ggplot(cdf_df, aes(x=as.character(YEAR), y=cdf))+
   geom_bar(stat="identity", fill="steelblue")+
   theme_bw() +
   ggtitle("CDF for Accepted applications from 2011-2016")+
-  labs(x="Number of accepted applications", y="CDF of accepted applications")+
+  labs(x="Year", y="CDF of accepted applications")+
   scale_fill_brewer(palette="Spectral")
 ```
 ### Expected Value
@@ -277,7 +277,8 @@ h1b$YEAR <- factor(h1b$YEAR, ordered = TRUE)
 # ------------------------------------------------------------------------------------------------------------------------------
 # Keep only "CERTIFIED" H1B cases
 certified_h1b <- h1b %>%
-    filter(CASE_STATUS == "CERTIFIED")
+    filter(CASE_STATUS == "CERTIFIED") %>% 
+    filter(YEAR == "2016")
 
 # Generate a sample of wages and filter out NA values
 set.seed(123)
@@ -308,7 +309,7 @@ ggplot(subset(wage_sample,
 descdist(wage_sample$PREVAILING_WAGE)
 ```
 ```{r echo=FALSE}
-fit_x <- fitdist(wage_sample$PREVAILING_WAGE, "norm")
+fit_x <- fitdist(wage_sample$PREVAILING_WAGE, "logis")
 summary(fit_x)
 ```
 ```{r echo=FALSE}
