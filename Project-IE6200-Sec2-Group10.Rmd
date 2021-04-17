@@ -170,6 +170,89 @@ ggplot(hb17_df, aes(x = as.Date(EMPLOYMENT_START_DATE))) +
 
 ```
 
+### Probability Mass Fucntion (PMF)  
+
+```{r}
+pmf_df <- data_science_df %>%
+    filter(CASE_STATUS == "CERTIFIED") %>% 
+    group_by(YEAR) %>%
+    summarise(count=n(),  .groups = 'drop') %>%
+    mutate(pmf = count/sum(count))
+
+ggplot(pmf_df, aes(count, pmf)) +
+  geom_bar(stat="identity", fill="steelblue")+
+  theme_bw() +
+  ggtitle("PMF for Accepted applications from 2011-2016")+
+  labs(x = 'No of accepted applications', y = 'Count') + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  scale_x_continuous("Count of accepted applicatin", labels = as.character(pmf_df$count),breaks = pmf_df$count)
+```
+### Continious Distribution Fucntion (CDF) 
+
+```{r}
+cdf_df <- data_science_df %>%
+  filter(CASE_STATUS == "CERTIFIED") %>% 
+  group_by(YEAR) %>%
+  summarise(count=n(),  .groups = 'drop') %>%
+  mutate(
+    pmf = count/sum(count),
+    cdf = cumsum(count)/sum(count) 
+  )
+
+ggplot(cdf_df, aes(x=count, y=cdf))+
+  geom_bar(stat="identity", fill="steelblue")+
+  theme_bw() +
+  ggtitle("CDF for Accepted applications from 2011-2016")+
+  labs(x="Number of accepted applications", y="CDF of accepted applications")+
+  scale_fill_brewer(palette="Spectral")
+```
+### Expected Value
+
+```{r}
+
+## TODO:// REMOVE THIS!!!
+expected_df <- data_science_df %>%
+  filter(CASE_STATUS == "CERTIFIED") %>% 
+  group_by(YEAR) %>%
+  summarise(count=n(),  .groups = 'drop') %>%
+  mutate(
+    pmf = count/sum(count),
+    cdf=cumsum(count)/sum(count),
+    expected_val=weighted.mean(count,pmf)
+  )
+weighted.mean(expected_df$count,expected_df$pmf)
+```
+## Joint Probability
+
+```{r}
+jp_df <- data_science_df %>%
+  group_by(YEAR) %>%
+  summarise(count = n()) %>%
+  mutate(pickup_pmf = count/sum(count)) %>%
+  mutate(pickup_cdf = cumsum(pickup_pmf)) 
+
+jp_df
+
+joint_freq <- outer(cdf_df$count, jp_df$count, FUN = "+") 
+rownames(jp_df) <- cdf_df$count
+colnames(joint_freq) <- jp_df$count
+joint_freq
+
+joint_prob <- round(joint_freq/sum(joint_freq),3) 
+joint_prob
+
+joint_df <- melt(joint_freq)
+colnames(joint_df) <- c('Accepted_Applications', 'Total_Applications', 'frequency')
+
+head(joint_df, 10)
+
+ggplot(data = joint_df,aes(x=Accepted_Applications, y=Total_Applications)) +
+  geom_point(aes(size = frequency, color = frequency)) +
+  labs(x = 'Accepted Applications', y = 'Total Applications') +
+  scale_x_continuous("Accepted_Applications", labels = as.character(joint_df$Accepted_Applications),breaks = joint_df$Accepted_Applications) + 
+  scale_y_continuous("Total_Applications", labels = as.character(joint_df$Total_Applications),breaks = joint_df$Total_Applications)+
+  theme_minimal()
+```
 
 ```{r echo=FALSE}
 
@@ -463,7 +546,7 @@ knitr::kable(wage_year_stats)
 ```{r echo=FALSE}
 
 ## Total Population consist of Employees with Job Title related to Data Science.
-## Sample Population consist of Employees with Job Title realted to Data Science working in Microsoft Corporation.
+## Sample Population consist of Employees with Job Title related to Data Science working in Microsoft Corporation.
 
 ## Assuming our entire dataset is the population we want to test if the mean wage of our sample data is equivalent to mean wage
 
@@ -589,5 +672,15 @@ t.test(cen_1_sample$PREVAILING_WAGE, cen_2_sample$PREVAILING_WAGE)
 ## 
 ```{r echo=FALSE}
 t.test(employerMicrosoft$PREVAILING_WAGE,alternative = "two.sided" ,mu = mean(data_science_df$PREVAILING_WAGE))
+```
+```{r}
+x <- c(151, 174, 138, 186, 128, 136, 179, 163, 152, 131)
+y <- c(63, 81, 56, 91, 47, 57, 76, 72, 62, 48)
+
+# Apply the lm() function.
+relation <- lm(y~x)
+
+print(relation)
+print(summary(relation))
 ```
 
