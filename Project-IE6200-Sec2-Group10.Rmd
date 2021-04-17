@@ -674,8 +674,7 @@ t.test(cen_1_sample$PREVAILING_WAGE, cen_2_sample$PREVAILING_WAGE)
 ```
 
 ## 
-```{r echo=FALSE}
-t.test(employerMicrosoft$PREVAILING_WAGE,alternative = "two.sided" ,mu = mean(data_science_df$PREVAILING_WAGE))
+```{r}
 ```
 
 ```{r}
@@ -703,6 +702,10 @@ mean(predicted.classes == test.data$CASE_STATUS)
 #optCutOff <- optimalCutoff(test.data$CASE_STATUS, predicted)[1]
 
 #confusionMatrix(test.data$CASE_STATUS, predicted, threshold = optCutOff)
+
+```
+
+```{r}
 
 ```
 
