@@ -15,12 +15,15 @@ library(corrplot)
 library(fitdistrplus)
 library(mapproj)
 library(magrittr)
+library(caret)
+library(InformationValue)
 ```
 
 ```{r echo=FALSE}
-hb16_df <- data.frame(read.csv("h1b16.csv", header = TRUE, sep = ,))
-hb17_df <- data.frame(read.csv("h1b17.csv", header = TRUE, sep = ,))
-hb18_df <- data.frame(read.csv("h1b18.csv", header = TRUE, sep = ,))
+
+hb16_df <- data.frame(read.csv("h1b16.csv", stringsAsFactors=TRUE, header = TRUE, sep = ,))
+hb17_df <- data.frame(read.csv("h1b17.csv", stringsAsFactors=TRUE, header = TRUE, sep = ,))
+hb18_df <- data.frame(read.csv("h1b18.csv", stringsAsFactors=TRUE, header = TRUE, sep = ,))
 
 # Data Science Vector
 data_science_jobs <- c("DATA SCIENTIST", "BUSINESS ANALYST", "DATA ANALYST", "DATA ENGINEER")
@@ -674,14 +677,32 @@ t.test(cen_1_sample$PREVAILING_WAGE, cen_2_sample$PREVAILING_WAGE)
 ```{r echo=FALSE}
 t.test(employerMicrosoft$PREVAILING_WAGE,alternative = "two.sided" ,mu = mean(data_science_df$PREVAILING_WAGE))
 ```
+
 ```{r}
-x <- c(151, 174, 138, 186, 128, 136, 179, 163, 152, 131)
-y <- c(63, 81, 56, 91, 47, 57, 76, 72, 62, 48)
+# Split the data into training and test set
+set.seed(123)
+training.samples <- data_science_df$CASE_STATUS %>% 
+  createDataPartition(p = 0.8, list = FALSE)
+train.data  <- data_science_df[training.samples, ]
+test.data <- data_science_df[-training.samples, ]
 
-# Apply the lm() function.
-relation <- lm(y~x)
+# Fit the model
+model <- glm( CASE_STATUS ~ JOB_TITLE + FULL_TIME_POSITION + YEAR + PREVAILING_WAGE, data = train.data, family = binomial)
 
-print(relation)
-print(summary(relation))
+# Summarize the model
+summary(model)
+# Make predictions
+probabilities <- model %>% predict(test.data, type = "response")
+predicted.classes <- ifelse(probabilities > 0.10, "CERTIFIED", "DENIED")
+# Model accuracy
+mean(predicted.classes == test.data$CASE_STATUS)
+
+#predicted <- plogis(predict(model, test.data))
+
+#library(InformationValue)
+#optCutOff <- optimalCutoff(test.data$CASE_STATUS, predicted)[1]
+
+#confusionMatrix(test.data$CASE_STATUS, predicted, threshold = optCutOff)
+
 ```
 
