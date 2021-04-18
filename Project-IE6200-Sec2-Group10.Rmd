@@ -61,7 +61,7 @@ quantile(data_science_parttime$PREVAILING_WAGE)
 var(data_science_parttime$PREVAILING_WAGE)
 sd(data_science_parttime$PREVAILING_WAGE)
 
-# Compare differnet datasets, use coefficient of variation
+# Compare different datasets, use coefficient of variation
 coefficient_of_variation_parttime = (sd(data_science_parttime$PREVAILING_WAGE) / mean(data_science_parttime$PREVAILING_WAGE)) * 100
 coefficient_of_variation_parttime
 ```
@@ -213,8 +213,6 @@ ggplot(cdf_df, aes(x=as.character(YEAR), y=cdf))+
 ### Expected Value
 
 ```{r}
-
-## TODO:// REMOVE THIS!!!
 expected_df <- data_science_df %>%
   filter(CASE_STATUS == "CERTIFIED") %>% 
   group_by(YEAR) %>%
