@@ -152,28 +152,6 @@ ggplot(accepted_rejected_df, aes(x="", y=total, fill=CASE_STATUS)) +
 
 ```
 
-```{r echo=FALSE}
-
-wage_df <- data_science_df %>% 
-  group_by(PREVAILING_WAGE) %>% 
-  summarise(total = n()) %>% 
-  drop_na() %>% 
-  arrange(desc(PREVAILING_WAGE = FALSE))
-
-nrow(wage_df)
-
-ggplot(data_science_df, aes(x = PREVAILING_WAGE)) +
-  geom_histogram(bins = 30, color = 'Black', fill = 'steelblue')
-
-certified_h1b <- hb16_df %>% 
-  filter(CASE_STATUS == "CERTIFIED")
-
-ggplot(hb17_df, aes(x = as.Date(EMPLOYMENT_START_DATE))) +
-  geom_histogram(bins = 70, color = 'Black', fill = 'steelblue')
-
-
-```
-
 ### Probability Mass Fucntion (PMF)  
 
 ```{r}
@@ -703,6 +681,8 @@ t.test(cen_1_sample$PREVAILING_WAGE, cen_2_sample$PREVAILING_WAGE)
 
 ## Since p−value ≥ 0.05, we fail to reject the null hypothesis and conclude that there is no significant difference between the mean wage of two samples, reaching the same conclusion as the two sample z-test.
 ```
+
+## Logistic Regression
 
 ```{r}
 # Split the data into training and test set
